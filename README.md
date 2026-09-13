@@ -130,10 +130,16 @@ This agent significantly enhances the integrity and depth of historical research
 
 ## 🛠️ Installation
 
+For VS Code, the [Docker devcontainer setup](.devcontainer/README.md) provides
+Python 3.12, browser/document dependencies, Codex, and GitHub integration.
+Use it as an alternative to the local environment setup below.
+
+For a checked execution workflow, see [EXECUTION.md](EXECUTION.md).
+
 ### Step 1: Clone the Repository
 
 ```bash
-git clone https://github.com/CharlesQ9/HistAgent.git
+git clone https://github.com/apkasten906/HistAgent.git
 cd HistAgent
 ```
 

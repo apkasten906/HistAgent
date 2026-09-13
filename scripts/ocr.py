@@ -47,8 +47,8 @@ class OCRTool(Tool):
         self.imgbb_api_key = imgbb_api_key
         self.model = model
         # TextIn OCR API credentials
-        self._textin_app_id = os.getenv("textin_app_id")
-        self._textin_secret_code = os.getenv("textin_secret_code")
+        self._textin_app_id = os.getenv("TEXTIN_APP_ID") or os.getenv("textin_app_id")
+        self._textin_secret_code = os.getenv("TEXTIN_SECRET_CODE") or os.getenv("textin_secret_code")
         self._textin_url = 'https://api.textin.com/ai/service/v2/recognize/multipage'
 
     def _get_file_content(self, file_path):

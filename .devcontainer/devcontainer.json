@@ -1,0 +1,54 @@
+{
+  "name": "HistAgent (Python 3.12)",
+  "build": { "dockerfile": "Dockerfile", "context": ".." },
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": { "version": "22" },
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+  "remoteUser": "vscode",
+  "init": true,
+  "runArgs": ["--shm-size=2g"],
+  "containerEnv": {
+    "GIT_AUTHOR_NAME": "apkasten906",
+    "GIT_AUTHOR_EMAIL": "apkasten@gmail.com",
+    "GIT_COMMITTER_NAME": "apkasten906",
+    "GIT_COMMITTER_EMAIL": "apkasten@gmail.com",
+    "GITHUB_USER": "apkasten906",
+    "GITHUB_EMAIL": "apkasten@gmail.com",
+    "CODEX_HOME": "/home/vscode/.codex"
+  },
+  "remoteEnv": {
+    "GH_TOKEN": "${localEnv:GH_TOKEN}",
+    "GITHUB_TOKEN": "${localEnv:GITHUB_TOKEN}"
+  },
+  "mounts": [
+    "source=${localEnv:USERPROFILE}${localEnv:HOME}/.codex,target=/mnt/host-codex,type=bind,readonly",
+    "source=histagent-codex-${devcontainerId},target=/home/vscode/.codex,type=volume"
+  ],
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+  "waitFor": "postCreateCommand",
+  "postStartCommand": "bash .devcontainer/codex-auth.sh",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-python.debugpy",
+        "charliermarsh.ruff",
+        "openai.chatgpt",
+        "github.vscode-pull-request-github",
+        "github.vscode-github-actions",
+        "ms-azuretools.vscode-containers",
+        "redhat.vscode-yaml",
+        "tamasfe.even-better-toml",
+        "mechatroner.rainbow-csv"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/opt/venv/bin/python",
+        "python.envFile": "${workspaceFolder}/.env",
+        "[python]": { "editor.defaultFormatter": "charliermarsh.ruff" },
+        "terminal.integrated.defaultProfile.linux": "bash"
+      }
+    }
+  }
+}

@@ -40,7 +40,6 @@ from smolagents.monitoring import LogLevel
 import datasets
 from datasets import Dataset
 from dotenv import load_dotenv
-from huggingface_hub import login
 from smolagents import CodeAgent
 from smolagents.agents import ToolCallingAgent
 from scripts.reformulator import prepare_response
@@ -119,7 +118,6 @@ from openai import AsyncOpenAI
 from tqdm.asyncio import tqdm_asyncio
 from datasets import load_dataset
 
-client = AsyncOpenAI(timeout=300.0, max_retries=1, api_key=os.getenv("OPENAI_API_KEY"))
 
 JUDGE_PROMPT = """You are a fair evaluator. Judge whether the following [response] to [question] is semantically consistent with the [correct_answer] below.  
 
@@ -175,7 +173,6 @@ AUTHORIZED_IMPORTS = [
     "csv",
 ]
 load_dotenv(override=True)
-login(os.getenv("HF_TOKEN"))
 
 append_answer_lock = threading.Lock()
 
@@ -206,6 +203,8 @@ def parse_args():
     parser.add_argument("--llama-api-key", type=str, help="LlamaParse API key", default=os.getenv("LLAMA_API_KEY"))
     parser.add_argument("--use-Chinese-agent", action="store_true",default=False, help="Enable Chinese agent")
     parser.add_argument("--use-video-agent", action="store_true",default=False, help="Enable video agent")
+    parser.add_argument("--dataset-path", type=Path, default=Path(__file__).resolve().parent / "HistBench" / "HistBench.xlsx", help="Path to the HistBench workbook")
+    parser.add_argument("--files-dir", type=Path, help="Attachment directory (defaults to the workbook directory)")
     return parser.parse_args()
 
 print("Make sure you deactivated Tailscale VPN, else some URLs will be blocked!")
@@ -1969,6 +1968,14 @@ def main():
     """Run the main program."""
     # Parse arguments
     args = parse_args()
+    if not args.api_key:
+        raise SystemExit("Missing OPENAI_API_KEY. Set it in the root .env file or pass --api-key.")
+    os.environ["OPENAI_API_KEY"] = args.api_key
+    global EXCEL_PATH
+    EXCEL_PATH = str(args.dataset_path.expanduser().resolve())
+    files_dir = str(args.files_dir.expanduser().resolve()) if args.files_dir else str(Path(EXCEL_PATH).parent)
+    if not Path(EXCEL_PATH).is_file():
+        raise SystemExit(f"Dataset not found: {EXCEL_PATH}. Download HistBench or pass --dataset-path.")
     
     # Set SET based on level parameter
     global SET
@@ -2022,7 +2029,8 @@ def main():
     start_time = time.time()
     
     # Log start info
-    logger.info(f"Starting run with arguments: {args}")
+    safe_args = {key: ("<redacted>" if "api_key" in key and value else value) for key, value in vars(args).items()}
+    logger.info(f"Starting run with arguments: {safe_args}")
 
     # Print path information for debugging
     logger.info(f"Current working directory: {os.getcwd()}")
@@ -2045,7 +2053,7 @@ def main():
         return
     
     # Load custom Excel dataset, passing results JSON path
-    eval_ds = load_custom_dataset(EXCEL_PATH, test_mode=False, results_json_path=args.results_json_path, sheet_name=sheet_name)
+    eval_ds = load_custom_dataset(EXCEL_PATH, files_dir=files_dir, test_mode=False, results_json_path=args.results_json_path, sheet_name=sheet_name)
     
     # Define output file paths
     answers_file = f"{output_dir}/{args.run_name}.jsonl"
